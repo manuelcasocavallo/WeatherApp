@@ -24,6 +24,9 @@ struct HomeView: View {
                 Spacer(minLength: 50)
             }
         }
+        .onAppear {
+            WeatherAPIViewModel().updateWeather(city: "London")
+        }
         
     }
 }
