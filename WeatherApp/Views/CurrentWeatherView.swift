@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CurrentWeatherView: View {
-    @EnvironmentObject var weatherViewModel: WeatherViewModel
+    @EnvironmentObject var weatherAPIViewModel: WeatherAPIViewModel
     @State private var isFavourite: Bool = false
     
     var body: some View {
@@ -16,7 +16,7 @@ struct CurrentWeatherView: View {
             VStack {
                 
                 HStack(alignment: .center) {
-                    Text(weatherViewModel.currentData.name)
+                    Text(weatherAPIViewModel.currentData.name)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     Image(systemName: isFavourite ? "heart.fill" : "heart")
@@ -33,7 +33,7 @@ struct CurrentWeatherView: View {
                 
                 HStack {
                     HStack(alignment: .center) {
-                        Image(systemName: weatherViewModel.currentData.conditionsImageName)
+                        Image(systemName: weatherAPIViewModel.currentData.conditionsImageName)
                             .resizable()
                             .scaledToFit()
                             .frame(height: geo.size.width / 3.3)
@@ -43,7 +43,7 @@ struct CurrentWeatherView: View {
                     VStack(alignment: .trailing) {
                         
                         VStack(alignment: .trailing) {
-                            Text(weatherViewModel.currentData.temp + (weatherViewModel.isMetric ? "°C" : "F°"))
+                            Text(weatherAPIViewModel.currentData.temp + (weatherAPIViewModel.isMetric ? "°C" : "F°"))
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .padding()
@@ -52,20 +52,20 @@ struct CurrentWeatherView: View {
                         VStack(alignment: .trailing) {
                             HStack {
                                 Text("Feels like")
-                                Text(weatherViewModel.currentData.feelsLike + (weatherViewModel.isMetric ? "°C" : "F°"))
+                                Text(weatherAPIViewModel.currentData.feelsLike + (weatherAPIViewModel.isMetric ? "°C" : "F°"))
                             }
 
                             HStack {
                                 Text("Humidity: ")
-                                Text("\(weatherViewModel.currentData.humidity)")
+                                Text("\(weatherAPIViewModel.currentData.humidity)")
                                 Text("%")
                             }
                             
                             HStack {
                                 Image(systemName: "thermometer")
-                                Text("\(weatherViewModel.currentData.tempMin + (weatherViewModel.isMetric ? "°C" : "F°"))")
-                                Text("-")
-                                Text("\(weatherViewModel.currentData.tempMax + (weatherViewModel.isMetric ? "°C" : "F°"))")
+                                Text("\(weatherAPIViewModel.currentData.tempMin + (weatherAPIViewModel.isMetric ? "°C" : "F°"))")
+                                Text("/")
+                                Text("\(weatherAPIViewModel.currentData.tempMax + (weatherAPIViewModel.isMetric ? "°C" : "F°"))")
                             }
                             
                             HStack {
@@ -111,7 +111,7 @@ struct CurrentWeatherView: View {
             
         }
         .onAppear {
-            weatherViewModel.updateWeather(city: "London")
+            weatherAPIViewModel.updateWeather(city: "London", isMetric: true)
         }
     }
 }
@@ -119,6 +119,6 @@ struct CurrentWeatherView: View {
 struct CurrentWeatherView_Previews: PreviewProvider {
     static var previews: some View {
         CurrentWeatherView()
-            .environmentObject(WeatherViewModel())
+            .environmentObject(WeatherAPIViewModel())
     }
 }

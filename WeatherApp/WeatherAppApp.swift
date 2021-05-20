@@ -9,11 +9,11 @@ import SwiftUI
 
 @main
 struct WeatherAppApp: App {
-    @StateObject private var weatherViewModel = WeatherViewModel()
+    @StateObject private var weatherAPIViewModel = WeatherAPIViewModel()
     var body: some Scene {
         WindowGroup {
             HomeView()
-                .environmentObject(weatherViewModel)
+                .environmentObject(weatherAPIViewModel)
         }
     }
 }

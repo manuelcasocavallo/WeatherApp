@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SearchBarView: View {
-    @EnvironmentObject var weatherViewModel: WeatherViewModel
+    @EnvironmentObject var weatherAPIViewModel: WeatherAPIViewModel
     @State private var textfieldText = ""
     
     var body: some View {
@@ -30,7 +30,7 @@ struct SearchBarView: View {
                     .frame(width: .infinity, height: 50)
                 
                 Button {
-                    weatherViewModel.updateWeather(city: textfieldText)
+                    weatherAPIViewModel.updateWeather(city: textfieldText, isMetric: true)
                 } label: {
                     Image(systemName: "magnifyingglass.circle")
                         .resizable()

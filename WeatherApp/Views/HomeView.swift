@@ -23,17 +23,13 @@ struct HomeView: View {
                 
                 Spacer(minLength: 50)
             }
-        }
-        .onAppear {
-            WeatherAPIViewModel().updateWeather(city: "London")
-        }
-        
+        }        
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
-            .environmentObject(WeatherViewModel())
+            .environmentObject(WeatherAPIViewModel())
     }
 }
