@@ -9,13 +9,17 @@ import Foundation
 
 class WeatherAPIViewModel: ObservableObject {
     
+    @Published var isMetric: Bool = true
+    @Published var isDay: Bool = false
+    
+    @Published var currentData = CurrentData()
+    
     struct CurrentData {
         var name: String = ""
         var temp: String = ""
         var tempMin: String = ""
         var tempMax: String = ""
         var humidity: Int = 0
-        var id: Int = 0
         var feelsLike: String = ""
         var conditionsImageName: String = ""
         var sunrise: String = ""
@@ -23,20 +27,47 @@ class WeatherAPIViewModel: ObservableObject {
         
     }
     
-    @Published var currentData = CurrentData()
-    @Published var isMetric: Bool = true
-
+    @Published var hourlyForecast = [HourlyForecast]()
     
-    //
-    //    struct HourlyForecast {
-    //        //12h forecast data: hour - conditionsImage - temp
-    //    }
+/*
+     Forecast {
+        [forecastday]   * 3
+     }
+     
+     forecastday {
+        date
+        date_epoch
+        [hour]          * 24
+     }
+     
+     hour {
+        time
+        time_epoch
+        temp_c
+     temp_f
+     is_day
+     Condition { text, code }
+     precip_mm
+     precip_in
+     }
+     
+*/
+    
+    struct HourlyForecast {
+        var time: String = ""
+        var conditionsImageName: String = ""
+        var temp: String = ""
+    }
+    
+    
+    
+    
+    
     //
     //    struct WeeklyForecast {
     //        //7 days forecast data: day - conditionsImage - temp
     //    }
     //
-    //    @Published var hourlyForecast = HourlyForecast()
     //    @Published var weeklyForecast = WeeklyForecast()
     //
     //
@@ -55,19 +86,30 @@ class WeatherAPIViewModel: ObservableObject {
             do {
                 let result = try decoder.decode(WeatherAPIData.self, from: data)
                 DispatchQueue.main.async {
+                    
+                    self.isDay = result.current.is_day == 1
+                    
+                    //MARK: - Update Current Data
+                    
                     self.currentData.name = result.location.name
                     self.currentData.temp = String(format: "%.1f", isMetric ? result.current.temp_c : result.current.temp_f)
                     self.currentData.tempMin = String(format: "%.0f", isMetric ? result.forecast.forecastday[0].day.mintemp_c : result.forecast.forecastday[0].day.mintemp_f)
                     self.currentData.tempMax = String(format: "%.0f", isMetric ? result.forecast.forecastday[0].day.maxtemp_c : result.forecast.forecastday[0].day.maxtemp_f)
                     self.currentData.humidity = result.current.humidity
-                    self.currentData.id = result.current.condition.code
                     self.currentData.feelsLike = String(format: "%.1f", isMetric ? result.current.feelslike_c : result.current.feelslike_f)
                     self.currentData.sunrise = result.forecast.forecastday[0].astro.sunrise
                     self.currentData.sunset = result.forecast.forecastday[0].astro.sunset
                     
-                    //TODO: Implement a day/night recognition system
                     
-                    self.currentData.conditionsImageName = self.updateImageName(id: result.current.condition.code, isNight: false)
+                    self.currentData.conditionsImageName = self.updateImageName(id: result.current.condition.code, isDay: self.isDay)
+                    
+                    
+                    
+                    //MARK: - Update 12h Forecast
+                    
+                    self.hourlyForecast[0].conditionsImageName = self.updateImageName(id: result.forecast.forecastday[0].day.condition.code, isDay: self.isDay)
+                    self.hourlyForecast[0].temp = String(format: "%.1f", isMetric ? result.forecast.forecastday[0].day.avgtemp_c : result.forecast.forecastday[0].day.avgtemp_f)
+                    
                     
                     print("Success\nCity: \(result.location.name)\nTemp: \(String(format: "%.1f", result.current.temp_c))\nFeels like: \(String(format: "%.1f", result.current.feelslike_c))")
                 }
@@ -79,12 +121,12 @@ class WeatherAPIViewModel: ObservableObject {
     }
     
     
-    func updateImageName(id: Int, isNight: Bool) -> String {
+    func updateImageName(id: Int, isDay: Bool) -> String {
         switch id {
         case 1000: //Sunny
-            return isNight ? "moon" : "sun.max" //113
+            return isDay ? "sun.max" : "moon" //113
         case 1003: //Partly Cloudy
-            return isNight ? "cloud.moon" : "cloud.sun" //116
+            return isDay ? "cloud.sun" : "cloud.moon" //116
         case 1006: //Cloudy
             return "cloud" //119
         case 1009: //Overcast
@@ -92,7 +134,7 @@ class WeatherAPIViewModel: ObservableObject {
         case 1030: //Mist
             return "cloud.fog" //143
         case 1063: //Patchy rain possible
-            return isNight ? "cloud.moon.rain" : "cloud.sun.rain" //176
+            return isDay ? "cloud.sun.rain" : "cloud.moon.rain" //176
         case 1066: //Patchy snow possible
             return "cloud.snow" //179
         case 1069: // Patchy sleet possible
@@ -100,7 +142,7 @@ class WeatherAPIViewModel: ObservableObject {
         case 1072: // Patchy freezing drizzle possible
             return "cloud.sleet" //185
         case 1087: //Thundery outbreaks possible
-            return isNight ? "cloud.moon.bolt" : "cloud.sun.bolt" //200
+            return isDay ? "cloud.sun.bolt" : "cloud.moon.bolt" //200
         case 1114: //Blowing snow
             return "wind.snow" //227
         case 1117: //Blizzard
@@ -118,11 +160,11 @@ class WeatherAPIViewModel: ObservableObject {
         case 1171: //Heavy freezing drizzle
             return "cloud.drizzle" //284
         case 1180: //Patchy light rain
-            return isNight ? "cloud.moon.rain" : "cloud.sun.rain" //293
+            return isDay ? "cloud.sun.rain" : "cloud.moon.rain" //293
         case 1183: //Light rain
             return "cloud.drizzle" //296
         case 1186: //Moderate rain at times
-            return isNight ? "cloud.moon.rain" : "cloud.sun.rain" //299
+            return isDay ? "cloud.sun.rain" : "cloud.moon.rain" //299
         case 1189: //Moderate rain
             return "cloud.rain" //302
         case 1192: //Heavy rain at times
@@ -152,9 +194,9 @@ class WeatherAPIViewModel: ObservableObject {
         case 1237: //Ice pellets
             return "cloud.hail" //350
         case 1240: //Light rain showers
-            return isNight ? "cloud.moon.rain" : "cloud.sun.rain" //353
+            return isDay ? "cloud.sun.rain" : "cloud.moon.rain" //353
         case 1243: //Moderate or heavy rain showers
-            return isNight ? "cloud.moon.rain.fill" : "cloud.sun.rain.fill" //356
+            return isDay ? "cloud.sun.rain.fill" : "cloud.moon.rain.fill" //356
         case 1246: //Torrential rain shower
             return "cloud.heavyrain.fill" //359
         case 1249: //Light sleet shower
@@ -170,9 +212,9 @@ class WeatherAPIViewModel: ObservableObject {
         case 1264: //Moderate or heavy showers of ice pellets
             return "cloud.hail.fill" //377
         case 1273: //Patchy light rain with thunder
-            return isNight ? "cloud.moon.bolt" : "cloud.sun.bolt" //386
+            return isDay ? "cloud.sun.bolt" : "cloud.moon.bolt" //386
         case 1276: //Moderate or heavy rain with thunder
-            return isNight ? "cloud.bolt.rain" : "cloud.bolt.rain.fill" //389
+            return isDay ? "cloud.bolt.rain" : "cloud.bolt.rain.fill" //389
         case 1279: //Patchy light snow with thunder
             return "cloud.snow" //392
         case 1282: //Moderate or heavy snow with thunder

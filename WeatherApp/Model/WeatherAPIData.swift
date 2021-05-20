@@ -5,6 +5,12 @@
 //  Created by Manuel Casocavallo on 19/05/21.
 //
 
+
+/*
+ https://www.weatherapi.com/docs/
+ */
+
+
 import Foundation
 
 struct WeatherAPIData: Decodable {
@@ -26,7 +32,7 @@ struct WeatherAPIData: Decodable {
         let last_updated: String
         let temp_c: Float
         let temp_f: Float
-        let is_day: Int
+        let is_day: Int             //1 = Yes / 0 = No
         let condition: Condition
         
         struct Condition: Decodable {
@@ -97,7 +103,8 @@ struct WeatherAPIData: Decodable {
         let forecastday: [Forecastday]
     
         struct Forecastday: Decodable {
-            let date: String
+            let date: String        //Local date
+            let date_epoch: Int     //Local date in unix time
             let day: Day
             
             struct Day: Decodable {
@@ -113,7 +120,7 @@ struct WeatherAPIData: Decodable {
                 let totalprecip_in: Float
                 let avgvis_km: Float
                 let avgvis_miles: Float
-                let avghumidity: Float
+                let avghumidity: Int
                 let daily_will_it_rain: Int
                 let daily_chance_of_rain: String
                 let daily_will_it_snow: Int
@@ -126,7 +133,7 @@ struct WeatherAPIData: Decodable {
                     let code: Int
                 }
                 
-                let uv: Int
+                let uv: Float
             }
             
             let astro: Astro
@@ -138,6 +145,51 @@ struct WeatherAPIData: Decodable {
                 let moonset: String
                 let moon_phase: String
                 let moon_illumination: String
+            }
+            
+            let hour: [Hour]
+            
+            struct Hour: Decodable {
+                let time_epoch: Int         //Local time in unix time
+                let time: String            //Local time
+                let temp_c: Float
+                let temp_f: Float
+                let is_day: Int             //1 = Yes / 0 = No
+                let condition: Condition
+                
+                struct Condition: Decodable {
+                    let text: String
+                    let code: Int
+                }
+                
+                let wind_mph: Float
+                let wind_kph: Float
+                let wind_degree: Int
+                let wind_dir: String
+                let pressure_mb: Float
+                let pressure_in: Float
+                let precip_mm: Float
+                let precip_in: Float
+                let humidity: Int
+                let cloud: Int
+                let feelslike_c: Float
+                let feelslike_f: Float
+                let windchill_c: Float
+                let windchill_f: Float
+                let heatindex_c: Float
+                let heatindex_f: Float
+                let dewpoint_c: Float
+                let dewpoint_f: Float
+                let will_it_rain: Int       //1 = Yes / 0 = No
+                let chance_of_rain: String
+                let will_it_snow: Int       //1 = Yes / 0 = No
+                let chance_of_snow: String
+                let vis_km: Float
+                let vis_miles: Float
+                let gust_mph: Float
+                let gust_kph: Float
+                let uv: Float
+                
             }
         }
     }

@@ -36,8 +36,8 @@ struct CurrentWeatherView: View {
                         Image(systemName: weatherAPIViewModel.currentData.conditionsImageName)
                             .resizable()
                             .scaledToFit()
-                            .frame(height: geo.size.width / 3.3)
                             .padding()
+                            .frame(height: geo.size.width / 2)
                     }
                                                             
                     VStack(alignment: .trailing) {
@@ -68,14 +68,14 @@ struct CurrentWeatherView: View {
                                 Text("\(weatherAPIViewModel.currentData.tempMax + (weatherAPIViewModel.isMetric ? "°C" : "F°"))")
                             }
                             
-                            HStack {
+                            VStack {
                                 HStack {
                                     Image(systemName: "sunrise.fill")
-                                    Text("6.00")
+                                    Text(weatherAPIViewModel.currentData.sunrise)
                                 }
                                 HStack {
                                     Image(systemName: "sunset.fill")
-                                    Text("17.21")
+                                    Text(weatherAPIViewModel.currentData.sunset)
                                 }
                             }
 
@@ -85,6 +85,7 @@ struct CurrentWeatherView: View {
                         
                     }
                 }
+                .frame(width: geo.size.width)
                 .padding(.bottom)
                 
                 ScrollView(.horizontal, showsIndicators: true) {
