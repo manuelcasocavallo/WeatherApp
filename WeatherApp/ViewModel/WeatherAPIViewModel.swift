@@ -11,9 +11,9 @@ class WeatherAPIViewModel: ObservableObject {
     
     @Published var isMetric: Bool = true
     @Published var isDay: Bool = false
+    @Published var currentDate: Date = Date()
     
     @Published var currentData = CurrentData()
-    
     struct CurrentData {
         var name: String = ""
         var temp: String = ""
@@ -27,54 +27,42 @@ class WeatherAPIViewModel: ObservableObject {
         
     }
     
-    @Published var hourlyForecast = [HourlyForecast]()
-    
-/*
-     Forecast {
-        [forecastday]   * 3
-     }
-     
-     forecastday {
-        date
-        date_epoch
-        [hour]          * 24
-     }
-     
-     hour {
-        time
-        time_epoch
-        temp_c
-     temp_f
-     is_day
-     Condition { text, code }
-     precip_mm
-     precip_in
-     }
-     
-*/
-    
-    struct HourlyForecast {
-        var time: String = ""
-        var conditionsImageName: String = ""
-        var temp: String = ""
+    @Published var hourlyForecast = [ForecastDay]()
+    struct ForecastDay {
+        var date: Date = Date()         //String yyyy-MM-dd
+        var dateEpoch: Int = 0      //unix time
+        
+        var tempMin: String = ""
+        var tempMax: String = ""
+        var tempAvg: String = ""
+        var maxWind: String = ""
+        var totalPrecip: String = ""
+        var dailyChanceOfRain: String = ""
+        var conditionText: String = ""
+        var conditionImageName: String = ""
+        var uv: Float = 0
+        
+        var hours = [Hour]()
+        struct Hour {
+            var timeEpoch: Int = 0  //unix time
+            var time: Date      //yyyy-MM-dd hh:mm String
+            var temp: String = ""
+            var isDay: Bool = true     //Int -> Bool (1=t, 0=f)
+            var conditionText: String = ""
+            var conditionImageName: String = ""
+            var precip: Float = 0
+        }
     }
     
-    
-    
-    
-    
-    //
-    //    struct WeeklyForecast {
-    //        //7 days forecast data: day - conditionsImage - temp
-    //    }
-    //
-    //    @Published var weeklyForecast = WeeklyForecast()
-    //
-    //
     
     let baseURL = "https://api.weatherapi.com/v1/forecast.json?key=\(WAPIKey)&q="
     
     func updateWeather(city: String, isMetric: Bool) {
+        let formatter1 = DateFormatter()
+        formatter1.dateFormat = "yyyy-MM-dd"
+        let formatter2 = DateFormatter()
+        formatter2.dateFormat = "yyyy-MM-dd HH:mm"
+        
         let cityName = city.replacingOccurrences(of: " ", with: "%20")
         guard let url = URL(string: baseURL + cityName + "&days=7&aqi=yes&alerts=no") else { return }
         
@@ -105,11 +93,38 @@ class WeatherAPIViewModel: ObservableObject {
                     
                     
                     
-                    //MARK: - Update 12h Forecast
+                    //MARK: - Update Hourly Forecast
                     
-                    self.hourlyForecast[0].conditionsImageName = self.updateImageName(id: result.forecast.forecastday[0].day.condition.code, isDay: self.isDay)
-                    self.hourlyForecast[0].temp = String(format: "%.1f", isMetric ? result.forecast.forecastday[0].day.avgtemp_c : result.forecast.forecastday[0].day.avgtemp_f)
-                    
+                    for d in 0...2 {
+                        var forecastDay = ForecastDay(
+                            date: formatter1.date(from: result.forecast.forecastday[d].date) ?? self.currentDate,
+                            dateEpoch: result.forecast.forecastday[d].date_epoch,
+                            tempMin: String(format: "%.1f", isMetric ? result.forecast.forecastday[d].day.mintemp_c : result.forecast.forecastday[d].day.mintemp_c),
+                            tempMax: String(format: "%.1f", isMetric ? result.forecast.forecastday[d].day.maxtemp_c : result.forecast.forecastday[d].day.maxtemp_c),
+                            tempAvg: String(format: "%.1f", isMetric ? result.forecast.forecastday[d].day.avgtemp_c : result.forecast.forecastday[d].day.avgtemp_c),
+                            maxWind: String(format: "%.1f", isMetric ? result.forecast.forecastday[d].day.maxwind_kph : result.forecast.forecastday[d].day.maxwind_mph),
+                            totalPrecip: String(format: "%.1f", isMetric ? result.forecast.forecastday[d].day.totalprecip_mm : result.forecast.forecastday[d].day.totalprecip_in),
+                            dailyChanceOfRain: result.forecast.forecastday[d].day.daily_chance_of_rain,
+                            conditionText: result.forecast.forecastday[d].day.condition.text,
+                            conditionImageName: self.updateImageName(id: result.forecast.forecastday[d].day.condition.code, isDay: true),
+                            uv: result.forecast.forecastday[d].day.uv
+                        )
+
+                        for h in 0...23 {
+                            let hour = ForecastDay.Hour(
+                                timeEpoch: result.forecast.forecastday[d].hour[h].time_epoch,
+                                time: formatter2.date(from: result.forecast.forecastday[d].hour[h].time) ?? self.currentDate,
+                                temp: isMetric ? String(format: "%.1f", result.forecast.forecastday[d].hour[h].temp_c) : String(format: "%.1f", result.forecast.forecastday[d].hour[h].temp_f),
+                                isDay: result.forecast.forecastday[d].hour[h].is_day == 1,
+                                conditionText: result.forecast.forecastday[d].hour[h].condition.text,
+                                conditionImageName: self.updateImageName(id: result.forecast.forecastday[d].hour[h].condition.code, isDay: result.forecast.forecastday[d].hour[h].is_day == 1),
+                                precip: isMetric ? result.forecast.forecastday[d].hour[h].precip_mm : result.forecast.forecastday[d].hour[h].precip_in
+                            )
+                            forecastDay.hours.append(hour)
+                        }
+                        self.hourlyForecast.append(forecastDay)
+                        print(forecastDay)
+                    }
                     
                     print("Success\nCity: \(result.location.name)\nTemp: \(String(format: "%.1f", result.current.temp_c))\nFeels like: \(String(format: "%.1f", result.current.feelslike_c))")
                 }
@@ -223,5 +238,4 @@ class WeatherAPIViewModel: ObservableObject {
             return "sparkles"
         }
     }
-    
 }

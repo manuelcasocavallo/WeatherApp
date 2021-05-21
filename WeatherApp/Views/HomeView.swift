@@ -23,7 +23,7 @@ struct HomeView: View {
                 
                 Spacer(minLength: 50)
             }
-        }        
+        }
     }
 }
 

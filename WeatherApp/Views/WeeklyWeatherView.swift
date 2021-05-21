@@ -8,17 +8,18 @@
 import SwiftUI
 
 struct WeeklyWeatherView: View {
+    @EnvironmentObject var weatherApiViewModel: WeatherAPIViewModel
     var body: some View {
         ScrollView(.horizontal, showsIndicators: true) {
             HStack(spacing: 16) {
-                ForEach(0..<7) { day in
+                ForEach(0..<3) { day in
                     VStack(alignment: .center) {
-                        Text("Day \(day + 1)")
+                        Text("\(day + 1)")
                             .padding(.top)
-                        Image(systemName: "sun.max.fill")
+                        Image(systemName: "sun.fill")
                             .resizable()
                             .frame(width: 50, height: 50)
-                        Text("20°C")
+                        Text("20.0 °C")
                             .padding(.bottom)
                     }
                     .padding(.horizontal)
@@ -31,8 +32,10 @@ struct WeeklyWeatherView: View {
     }
 }
 
+
 struct WeeklyWeatherView_Previews: PreviewProvider {
     static var previews: some View {
         WeeklyWeatherView()
+            .environmentObject(WeatherAPIViewModel())
     }
 }

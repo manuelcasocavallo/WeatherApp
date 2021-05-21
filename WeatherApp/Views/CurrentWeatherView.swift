@@ -112,7 +112,9 @@ struct CurrentWeatherView: View {
             
         }
         .onAppear {
+            weatherAPIViewModel.currentDate = Date()
             weatherAPIViewModel.updateWeather(city: "London", isMetric: true)
+            print(weatherAPIViewModel.hourlyForecast)
         }
     }
 }
